@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n="login_title">登录</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style> main { max-width: 560px; } </style>
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow" data-i18n="subtitle">统一门户 · 业务中心</p>
+      <h2 style="margin:6px 0 0" data-i18n="brand">企业协同平台</h2>
+      <p style="margin:4px 0 0;color:#5b6b81" data-i18n="dashboard_subtitle">模块导航与快捷入口</p>
+    </div>
+    <button class="ghost" id="lang-switch" data-i18n="language_toggle">中文 / English</button>
+  </header>
+  <main>
+    <div class="card">
+      <h3 data-i18n="login_title">登录</h3>
+      <div class="form-grid">
+        <label><span data-i18n="username">用户名</span> <input id="username" placeholder="admin" /></label>
+        <label><span data-i18n="password">密码</span> <input id="password" type="password" placeholder="admin" /></label>
+      </div>
+      <button class="primary" id="login" data-i18n="login_button">登录</button>
+      <p id="login-status" class="warning"></p>
+      <p style="color:#5b6b81;" data-i18n="login_tip">默认管理员：admin / admin</p>
+    </div>
+  </main>
+  <script src="/static/app.js"></script>
+  <script>
+    AppUI.applyI18n();
+    document.getElementById('lang-switch').onclick = () => {
+      const next = localStorage.getItem('erp_lang') === 'en' ? 'zh' : 'en';
+      localStorage.setItem('erp_lang', next);
+      window.location.reload();
+    };
+    document.getElementById('login').onclick = async () => {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const statusEl = document.getElementById('login-status');
+      statusEl.textContent = I18N[currentLang()].signing_in;
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        statusEl.textContent = data.error || I18N[currentLang()].login_failed;
+        return;
+      }
+      statusEl.textContent = I18N[currentLang()].login_success;
+      window.location.href = '/dashboard.html';
+    };
+  </script>
+</body>
+</html>

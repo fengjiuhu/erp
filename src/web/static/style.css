@@ -53,6 +53,20 @@ main { padding: 24px 28px 48px; max-width: 1280px; margin: 0 auto; }
 .grid .card:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(31,45,61,0.12); }
 section { margin-top: 20px; }
 label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.pill-group { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 12px; }
+.pill {
+  background: #ffffff;
+  border: 1px solid #d6e4ff;
+  color: #1f2d3d;
+  border-radius: 18px;
+  padding: 8px 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(22, 119, 255, 0.08);
+  transition: all 0.12s ease;
+}
+.pill:hover { box-shadow: 0 10px 20px rgba(22, 119, 255, 0.12); }
+.pill-active { background: #1677ff; color: #fff; border-color: #1677ff; box-shadow: 0 10px 24px rgba(22, 119, 255, 0.3); }
+.pill:disabled { opacity: 0.6; cursor: not-allowed; }
 button.primary {
   background: #1677ff;
   color: #fff;
@@ -94,5 +108,4 @@ input, select {
   background: #f8fafc;
   color: #1f2d3d;
 }
-#module-select { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-top: 8px; }
-#module-select label { background: #f5f7fb; padding: 8px; border-radius: 8px; border: 1px solid #e3e8f0; }
+#module-select { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }

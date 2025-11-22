@@ -44,10 +44,10 @@ const I18N: Record<Lang, I18nTable> = {
     login_success: '登录成功，跳转中...',
     modules_header: '可访问的模块',
     nav_logout: '退出',
-    card_cta: '打开模块工作台',
-    quick_tasks: '快捷任务',
-    run_selected: '执行勾选任务',
-    pick_one: '请至少选择一个任务',
+    card_cta: '进入工作台',
+    quick_tasks: '快捷操作',
+    run_selected: '执行所选任务',
+    pick_one: '请先选择至少一个任务',
     running: '执行中...',
     done: '完成',
     awaiting: '等待执行...',
@@ -62,6 +62,8 @@ const I18N: Record<Lang, I18nTable> = {
     language_toggle: '中文 / English',
     dashboard_subtitle: '模块导航与快捷入口',
     load_error: '数据加载失败',
+    integration_center: '功能集成中心',
+    integration_hint: '从导航快速切换模块，保持页面衔接顺畅',
   },
   en: {
     brand: 'Enterprise Platform',
@@ -74,9 +76,9 @@ const I18N: Record<Lang, I18nTable> = {
     login_success: 'Success, redirecting...',
     modules_header: 'Your modules',
     nav_logout: 'Logout',
-    card_cta: 'Open module workspace',
-    quick_tasks: 'Quick tasks',
-    run_selected: 'Run selected',
+    card_cta: 'Open workspace',
+    quick_tasks: 'Quick actions',
+    run_selected: 'Run selected tasks',
     pick_one: 'Pick at least one task.',
     running: 'Running...',
     done: 'Done',
@@ -92,6 +94,8 @@ const I18N: Record<Lang, I18nTable> = {
     language_toggle: '中文 / English',
     dashboard_subtitle: 'Module landing',
     load_error: 'Failed to load data',
+    integration_center: 'Integration Hub',
+    integration_hint: 'Switch across modules without losing context',
   },
 };
 
@@ -216,6 +220,16 @@ function buildNav(modules: ModuleMeta[], activeKey: string) {
   nav.appendChild(logoutBtn);
 }
 
+function toggleSelectable(btn: HTMLButtonElement) {
+  const selected = btn.dataset.selected === 'true';
+  btn.dataset.selected = (!selected).toString();
+  if (!selected) {
+    btn.classList.add('pill-active');
+  } else {
+    btn.classList.remove('pill-active');
+  }
+}
+
 function renderTasks(moduleKey: string) {
   const container = document.getElementById('tasks');
   if (!container) return;
@@ -223,10 +237,16 @@ function renderTasks(moduleKey: string) {
   const list = meta?.tasks || [];
   const lang = currentLang();
   container.innerHTML = '';
+  container.classList.add('pill-group');
   list.forEach((task) => {
-    const row = document.createElement('label');
-    row.innerHTML = `<input type="checkbox" value="${task.id}"> ${task.label[lang]}`;
-    container.appendChild(row);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pill';
+    btn.textContent = task.label[lang];
+    btn.dataset.value = task.id;
+    btn.dataset.selected = 'false';
+    btn.onclick = () => toggleSelectable(btn);
+    container.appendChild(btn);
   });
 }
 
@@ -234,7 +254,9 @@ async function runSelected(moduleKey: string) {
   const output = document.getElementById('output');
   const statusEl = document.getElementById('status');
   const btn = document.getElementById('run') as HTMLButtonElement | null;
-  const selected = Array.from(document.querySelectorAll('#tasks input[type=checkbox]:checked')).map((c) => (c as HTMLInputElement).value);
+  const selected = Array.from(document.querySelectorAll('#tasks button[data-value]'))
+    .filter((c) => (c as HTMLButtonElement).dataset.selected === 'true')
+    .map((c) => (c as HTMLButtonElement).dataset.value || '');
   if (!selected.length) {
     if (statusEl) statusEl.textContent = (I18N[currentLang()].pick_one as string) || '';
     return;
@@ -283,8 +305,22 @@ async function initDashboard() {
   const userInfo = document.getElementById('user-info');
   if (userInfo) userInfo.textContent = `${me.username} · ${me.department ?? ''}`;
   buildNav(modules, 'dashboard');
-  const grid = document.getElementById('module-grid');
   const lang = currentLang();
+  const integration = document.getElementById('integration-center');
+  if (integration) {
+    integration.innerHTML = '';
+    modules.forEach((m) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pill';
+      btn.textContent = m.label[lang];
+      btn.onclick = () => {
+        window.location.href = m.path;
+      };
+      integration.appendChild(btn);
+    });
+  }
+  const grid = document.getElementById('module-grid');
   if (grid) {
     grid.innerHTML = '';
     modules.forEach((m) => {
@@ -302,7 +338,9 @@ async function createUser() {
   const username = (document.getElementById('new-username') as HTMLInputElement | null)?.value || '';
   const password = (document.getElementById('new-password') as HTMLInputElement | null)?.value || '';
   const department = (document.getElementById('new-department') as HTMLInputElement | null)?.value || '';
-  const modules = Array.from(document.querySelectorAll('#module-select input[type=checkbox]:checked')).map((c) => (c as HTMLInputElement).value);
+  const modules = Array.from(document.querySelectorAll('#module-select button[data-module]'))
+    .filter((c) => (c as HTMLButtonElement).dataset.selected === 'true')
+    .map((c) => (c as HTMLButtonElement).dataset.module || '');
   if (statusEl) statusEl.textContent = I18N[currentLang()].submitting as string;
   try {
     const data = await ApiClient.createUser({ username, password, department, modules });
@@ -319,9 +357,14 @@ function renderModuleSelector() {
   box.innerHTML = '';
   const selectable = moduleCache.filter((m) => m.key !== 'dashboard');
   selectable.forEach((meta) => {
-    const row = document.createElement('label');
-    row.innerHTML = `<input type="checkbox" value="${meta.key}"> ${meta.label[lang]}`;
-    box.appendChild(row);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pill';
+    btn.textContent = meta.label[lang];
+    btn.dataset.module = meta.key;
+    btn.dataset.selected = 'false';
+    btn.onclick = () => toggleSelectable(btn);
+    box.appendChild(btn);
   });
 }
 

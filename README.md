@@ -19,7 +19,14 @@ This repository now contains two pieces:
    ```bash
    python -m src.main
    ```
-4. Extend any service under `src/services/` to plug in real logic per feature bullet.
+4. Launch the full multi-page web UI (stdlib server) with login + permissions:
+   ```bash
+   python -m src.web.server
+   ```
+   Open http://localhost:8000 → sign in with `admin / admin` → land on the dashboard.
+   - Admin can create users and assign module access in **IAM & Security**.
+   - Each major module (IAM, Office, OA, HRM, Finance, Supply, Project, CRM, Knowledge/LMS, Portal/Mobile, ITSM/BI, Developer, Asset) has its own page with runnable tasks.
+5. Extend any service under `src/services/` to plug in real logic per feature bullet.
 
 ### Project Layout Highlights
 - `config/` centralizes basic runtime toggles and logging defaults.
@@ -59,7 +66,12 @@ This repository now contains two pieces:
    ```bash
    python -m src.main
    ```
-4. 在 `src/services/` 下为任意功能点添加真实实现逻辑。
+4. 启动轻量 Web UI（纯标准库服务器）并在浏览器里批量触发任务：
+   ```bash
+   python -m src.web.server
+   ```
+   打开 http://localhost:8000 选择任务并并发执行。
+5. 在 `src/services/` 下为任意功能点添加真实实现逻辑。
 
 ### ER 覆盖清单
 - **用户与组织：** `user`, `department`, `position`

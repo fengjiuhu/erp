@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IAM & Security</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h2 style="margin:0">IAM & Security</h2>
+      <p style="margin:4px 0 0;color:#a8c6da">Accounts, permissions, and audit actions</p>
+    </div>
+    <div id="nav"></div>
+  </header>
+  <main>
+    <div id="body">
+      <p id="user-info" style="color:#9bb6c8"></p>
+      <section class="card">
+        <h3>Quick tasks</h3>
+        <div id="tasks" class="form-grid"></div>
+        <button class="primary" id="run">Run selected</button>
+        <span id="status" style="margin-left:10px;color:#9bb6c8"></span>
+        <pre id="output">Awaiting execution...</pre>
+      </section>
+      <section class="card">
+        <h3>Admin · Create user & assign modules</h3>
+        <div class="form-grid">
+          <label>Username <input id="new-username" placeholder="jane" /></label>
+          <label>Password <input id="new-password" placeholder="changeme" /></label>
+          <label>Department <input id="new-department" placeholder="R&D" /></label>
+        </div>
+        <div id="module-select"></div>
+        <button class="primary" style="margin-top:10px" onclick="AppUI.createUser()">Create user</button>
+        <p id="create-status" class="warning"></p>
+      </section>
+    </div>
+  </main>
+  <script src="/static/app.js"></script>
+  <script>
+    AppUI.renderModuleSelector();
+    AppUI.bootstrapModulePage('iam');
+  </script>
+</body>
+</html>

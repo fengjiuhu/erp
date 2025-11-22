@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style> main { max-width: 480px; } </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h2 style="margin:0">Enterprise Platform</h2>
+      <p style="margin:4px 0 0;color:#a8c6da">Sign in to access your modules</p>
+    </div>
+  </header>
+  <main>
+    <div class="card">
+      <h3>Login</h3>
+      <div class="form-grid">
+        <label>Username <input id="username" placeholder="admin" /></label>
+        <label>Password <input id="password" type="password" placeholder="admin" /></label>
+      </div>
+      <button class="primary" id="login">Sign in</button>
+      <p id="login-status" class="warning"></p>
+      <p style="color:#9bb6c8;">Default admin: admin / admin</p>
+    </div>
+  </main>
+  <script>
+    document.getElementById('login').onclick = async () => {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const statusEl = document.getElementById('login-status');
+      statusEl.textContent = 'Signing in...';
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        statusEl.textContent = data.error || 'Login failed';
+        return;
+      }
+      statusEl.textContent = 'Success, redirecting...';
+      window.location.href = '/dashboard.html';
+    };
+  </script>
+</body>
+</html>

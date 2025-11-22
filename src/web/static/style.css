@@ -109,3 +109,17 @@ input, select {
   color: #1f2d3d;
 }
 #module-select { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.feature-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.feature-list li { display: flex; justify-content: space-between; align-items: center; }
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #d6e4ff;
+  font-size: 12px;
+  background: #f0f5ff;
+  color: #1f2d3d;
+}
+.status-pill.ready { background: #f6ffed; border-color: #b7eb8f; color: #389e0d; }
+.status-pill.in_progress { background: #fff7e6; border-color: #ffe58f; color: #d48806; }
+.status-pill.planned { background: #f0f5ff; border-color: #adc6ff; color: #2f54eb; }

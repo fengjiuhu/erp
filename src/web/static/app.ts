@@ -32,6 +32,23 @@ interface ModulesResponse {
   all?: ModuleMeta[];
 }
 
+type FeatureStatus = 'ready' | 'in_progress' | 'planned';
+
+interface FeatureItem {
+  name: TranslationMap;
+  status: FeatureStatus;
+}
+
+interface FeatureArea {
+  key: string;
+  title: TranslationMap;
+  items: FeatureItem[];
+}
+
+interface FeatureResponse {
+  areas: FeatureArea[];
+}
+
 const I18N: Record<Lang, I18nTable> = {
   zh: {
     brand: '企业协同平台',
@@ -64,6 +81,11 @@ const I18N: Record<Lang, I18nTable> = {
     load_error: '数据加载失败',
     integration_center: '功能集成中心',
     integration_hint: '从导航快速切换模块，保持页面衔接顺畅',
+    feature_header: '能力覆盖总览',
+    feature_hint: '对照需求清单，查看当前进展',
+    status_ready: '就绪',
+    status_in_progress: '进行中',
+    status_planned: '规划中',
   },
   en: {
     brand: 'Enterprise Platform',
@@ -96,6 +118,11 @@ const I18N: Record<Lang, I18nTable> = {
     load_error: 'Failed to load data',
     integration_center: 'Integration Hub',
     integration_hint: 'Switch across modules without losing context',
+    feature_header: 'Capability coverage',
+    feature_hint: 'Track live progress against the scope',
+    status_ready: 'Ready',
+    status_in_progress: 'In progress',
+    status_planned: 'Planned',
   },
 };
 
@@ -166,6 +193,15 @@ class ApiClient {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed');
     return data;
+  }
+
+  static async features(): Promise<FeatureResponse> {
+    const res = await fetch('/api/features');
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return { areas: [] };
+    }
+    return res.json();
   }
 }
 
@@ -331,6 +367,43 @@ async function initDashboard() {
       grid.appendChild(card);
     });
   }
+
+  const featureContainer = document.getElementById('feature-map');
+  if (featureContainer) {
+    featureContainer.innerHTML = '';
+    try {
+      const { areas } = await ApiClient.features();
+      areas.forEach((area) => {
+        const card = document.createElement('div');
+        card.className = 'card feature-card';
+        const title = document.createElement('div');
+        title.className = 'card-title';
+        title.innerHTML = `<h3>${area.title[lang]}</h3>`;
+        card.appendChild(title);
+        const list = document.createElement('ul');
+        list.className = 'feature-list';
+        area.items.forEach((item) => {
+          const li = document.createElement('li');
+          li.innerHTML = `<span>${item.name[lang]}</span>${renderStatus(item.status)}`;
+          list.appendChild(li);
+        });
+        card.appendChild(list);
+        featureContainer.appendChild(card);
+      });
+    } catch (err) {
+      featureContainer.innerHTML = `<p class="warning">${I18N[lang].load_error}</p>`;
+    }
+  }
+}
+
+function renderStatus(status: FeatureStatus): string {
+  const keyMap: Record<FeatureStatus, string> = {
+    ready: 'status_ready',
+    in_progress: 'status_in_progress',
+    planned: 'status_planned',
+  };
+  const label = I18N[currentLang()][keyMap[status]] as string;
+  return `<span class="status-pill ${status}">${label}</span>`;
 }
 
 async function createUser() {

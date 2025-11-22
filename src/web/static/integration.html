@@ -1,32 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Integration Module</title>
+  <title>集成与网关</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <header>
     <div>
-      <h2 style="margin:0">Integration Module</h2>
-      <p style="margin:4px 0 0;color:#a8c6da">Execute Integration workflows</p>
+      <p class="eyebrow" data-i18n="subtitle">统一门户 · 业务中心</p>
+      <h2 id="module-title" style="margin:6px 0 0">集成与网关</h2>
+      <p id="module-desc" style="margin:4px 0 0;color:#5b6b81">API 网关、消息队列、数据同步</p>
     </div>
     <div id="nav"></div>
   </header>
   <main>
     <div id="body">
-      <p id="user-info" style="color:#9bb6c8"></p>
+      <p id="user-info" class="muted"></p>
       <section class="card">
-        <h3>Module tasks</h3>
+        <div class="card-title">
+          <div>
+            <h3 data-i18n="quick_tasks">快捷任务</h3>
+            <p class="muted">API 调用、MQ、ESB 适配演示</p>
+          </div>
+        </div>
         <div id="tasks" class="form-grid"></div>
-        <button class="primary" id="run">Run selected</button>
-        <span id="status" style="margin-left:10px;color:#9bb6c8"></span>
-        <pre id="output">Awaiting execution...</pre>
+        <button class="primary" id="run" data-i18n="run_selected">执行勾选任务</button>
+        <span id="status" class="muted"></span>
+        <pre id="output" data-i18n="awaiting">等待执行...</pre>
       </section>
     </div>
   </main>
   <script src="/static/app.js"></script>
-  <script>AppUI.bootstrapModulePage('integration');</script>
+  <script>
+    AppUI.applyI18n();
+    AppUI.setModuleCopy('integration');
+    AppUI.bootstrapModulePage('integration');
+  </script>
 </body>
 </html>

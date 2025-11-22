@@ -1,29 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard</title>
+  <title>驾驶舱</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <header>
     <div>
-      <h2 style="margin:0">Enterprise Platform</h2>
-      <p style="margin:4px 0 0;color:#a8c6da">Module landing</p>
+      <p class="eyebrow" data-i18n="subtitle">统一门户 · 业务中心</p>
+      <h2 id="module-title" style="margin:6px 0 0">驾驶舱</h2>
+      <p id="module-desc" style="margin:4px 0 0;color:#5b6b81" data-i18n="dashboard_subtitle">模块导航与快捷入口</p>
     </div>
     <div id="nav"></div>
   </header>
   <main>
     <div id="body">
-      <p id="user-info" style="color:#9bb6c8"></p>
+      <div class="banner">
+        <div>
+          <p class="eyebrow">快速访问</p>
+          <h3 data-i18n="modules_header">可访问的模块</h3>
+          <p class="muted">基于权限控制自动显示，管理员可在身份模块创建更多账户</p>
+        </div>
+        <p id="user-info" class="muted"></p>
+      </div>
       <section>
-        <h3>Your modules</h3>
         <div id="module-grid" class="grid"></div>
       </section>
     </div>
   </main>
   <script src="/static/app.js"></script>
-  <script>AppUI.initDashboard();</script>
+  <script>
+    AppUI.applyI18n();
+    AppUI.setModuleCopy('dashboard');
+    AppUI.initDashboard();
+  </script>
 </body>
 </html>

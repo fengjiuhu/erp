@@ -30,6 +30,49 @@
         <span id="status" class="muted"></span>
         <pre id="output" data-i18n="awaiting">等待执行...</pre>
       </section>
+
+      <section class="card">
+        <div class="card-title">
+          <div>
+            <h3 data-i18n="approval_form">提交流程单</h3>
+            <p class="muted" data-i18n="approval_form_hint">模拟请假/报销/采购等审批提交流程</p>
+          </div>
+        </div>
+        <form id="approval-form" class="form-grid" autocomplete="off">
+          <label>
+            <span data-i18n="approval_type">流程类型</span>
+            <select id="approval-type">
+              <option value="leave" selected>请假</option>
+              <option value="expense">报销</option>
+              <option value="procurement">采购</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="approval_amount">金额/天数</span>
+            <input id="approval-amount" type="number" min="0" step="1" value="2" />
+          </label>
+          <label style="grid-column: 1 / -1;" class="stack">
+            <span data-i18n="approval_reason">事由</span>
+            <textarea id="approval-reason" rows="3" data-i18n-placeholder="approval_reason"></textarea>
+          </label>
+          <div class="actions" style="grid-column: 1 / -1;">
+            <button class="primary" type="submit" data-i18n="submit_approval">提交审批</button>
+            <span id="approval-status" class="muted"></span>
+          </div>
+        </form>
+        <pre id="approval-output" data-i18n="awaiting">等待执行...</pre>
+      </section>
+
+      <section class="card">
+        <div class="card-title">
+          <div>
+            <h3 data-i18n="latest_activity">最近动态</h3>
+            <p class="muted" data-i18n="approval_list_hint">查看提交过的流程及下一步</p>
+          </div>
+          <button class="ghost" type="button" id="approval-refresh" data-i18n="refresh">刷新</button>
+        </div>
+        <div id="approval-feed" class="feed"></div>
+      </section>
     </div>
   </main>
   <script src="/static/app.js"></script>
@@ -37,6 +80,7 @@
     AppUI.applyI18n();
     AppUI.setModuleCopy('oa');
     AppUI.bootstrapModulePage('oa');
+    AppUI.initOAWorkbench();
   </script>
 </body>
 </html>

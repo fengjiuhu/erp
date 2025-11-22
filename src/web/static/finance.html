@@ -30,6 +30,49 @@
         <span id="status" class="muted"></span>
         <pre id="output" data-i18n="awaiting">等待执行...</pre>
       </section>
+
+      <section class="card">
+        <div class="card-title">
+          <div>
+            <h3 data-i18n="expense_form">费用报销单</h3>
+            <p class="muted" data-i18n="expense_form_hint">录入类别、金额与说明，并生成审批流</p>
+          </div>
+        </div>
+        <form id="expense-form" class="form-grid" autocomplete="off">
+          <label>
+            <span data-i18n="expense_type">报销类别</span>
+            <select id="expense-type">
+              <option value="travel" selected>差旅</option>
+              <option value="office">办公用品</option>
+              <option value="entertainment">业务招待</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="expense_amount">金额</span>
+            <input id="expense-amount" type="number" min="0" step="0.01" value="99.00" />
+          </label>
+          <label style="grid-column: 1 / -1;" class="stack">
+            <span data-i18n="expense_desc">说明</span>
+            <textarea id="expense-desc" rows="3" data-i18n-placeholder="expense_desc"></textarea>
+          </label>
+          <div class="actions" style="grid-column: 1 / -1;">
+            <button class="primary" type="submit" data-i18n="submit_expense">提交报销</button>
+            <span id="expense-status" class="muted"></span>
+          </div>
+        </form>
+        <pre id="expense-output" data-i18n="awaiting">等待执行...</pre>
+      </section>
+
+      <section class="card">
+        <div class="card-title">
+          <div>
+            <h3 data-i18n="latest_activity">最近动态</h3>
+            <p class="muted" data-i18n="expense_list_hint">展示刚刚提交的报销及审批去向</p>
+          </div>
+          <button class="ghost" type="button" id="expense-refresh" data-i18n="refresh">刷新</button>
+        </div>
+        <div id="expense-feed" class="feed"></div>
+      </section>
     </div>
   </main>
   <script src="/static/app.js"></script>
@@ -37,6 +80,7 @@
     AppUI.applyI18n();
     AppUI.setModuleCopy('finance');
     AppUI.bootstrapModulePage('finance');
+    AppUI.initFinanceWorkbench();
   </script>
 </body>
 </html>

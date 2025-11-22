@@ -307,6 +307,84 @@ const Render = {
     }
     items.forEach((item) => listEl.appendChild(renderItem(item)));
   },
+  async features() {
+    const res = await fetch('/api/features');
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return { areas: [] };
+    }
+    return res.json();
+  },
+  async saveDocument(payload) {
+    const res = await fetch('/api/office/document', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async sendChat(payload) {
+    const res = await fetch('/api/office/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async officeFeed() {
+    const res = await fetch('/api/office/feed');
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return { documents: [], messages: [] };
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async submitApproval(payload) {
+    const res = await fetch('/api/oa/approval', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ form: payload }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async listApprovals() {
+    const res = await fetch('/api/oa/approvals');
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return { items: [] };
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async submitExpense(payload) {
+    const res = await fetch('/api/finance/expense', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expense: payload }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async listExpenses() {
+    const res = await fetch('/api/finance/expenses');
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return { items: [] };
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
 };
 
 const Modules = {

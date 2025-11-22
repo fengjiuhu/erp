@@ -277,6 +277,10 @@ DEFAULT_ADMIN = {
 
 USER_DB: Dict[str, Dict[str, object]] = {"admin": DEFAULT_ADMIN.copy()}
 SESSIONS: Dict[str, str] = {}
+DOCUMENT_STORE: List[Dict[str, object]] = []
+CHAT_LOG: List[Dict[str, object]] = []
+APPROVALS: List[Dict[str, object]] = []
+EXPENSES: List[Dict[str, object]] = []
 
 
 class DemoHandler(BaseHTTPRequestHandler):
@@ -361,6 +365,12 @@ class DemoHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "unauthorized"}, HTTPStatus.UNAUTHORIZED)
         return user
 
+    def _require_module(self, user: Dict[str, object], module: str) -> bool:
+        if module not in user.get("modules", []):
+            self._send_json({"error": "forbidden", "module": module}, HTTPStatus.FORBIDDEN)
+            return False
+        return True
+
     # --- response helpers -----------------------------------------------
     def _send_json(self, payload: Dict, status: HTTPStatus = HTTPStatus.OK):
         body = json.dumps(payload).encode()
@@ -443,6 +453,41 @@ class DemoHandler(BaseHTTPRequestHandler):
             self._send_json({"areas": FEATURE_MAP})
             return
 
+        if self.path == "/api/office/feed":
+            auth = self._require_auth()
+            if not auth:
+                return
+            _, user = auth
+            if not self._require_module(user, "office"):
+                return
+            self._send_json(
+                {
+                    "documents": DOCUMENT_STORE[-5:],
+                    "messages": CHAT_LOG[-5:],
+                }
+            )
+            return
+
+        if self.path == "/api/oa/approvals":
+            auth = self._require_auth()
+            if not auth:
+                return
+            _, user = auth
+            if not self._require_module(user, "oa"):
+                return
+            self._send_json({"items": APPROVALS[-10:]})
+            return
+
+        if self.path == "/api/finance/expenses":
+            auth = self._require_auth()
+            if not auth:
+                return
+            _, user = auth
+            if not self._require_module(user, "finance"):
+                return
+            self._send_json({"items": EXPENSES[-10:]})
+            return
+
         self.send_error(HTTPStatus.NOT_FOUND)
 
     def do_POST(self):  # noqa: N802
@@ -522,6 +567,97 @@ class DemoHandler(BaseHTTPRequestHandler):
             results = run_concurrent(tasks)
             ordered = {task: results[idx] for idx, task in enumerate(requested)}
             self._send_json({"results": ordered, "user": username})
+            return
+
+        if self.path == "/api/office/document":
+            auth = self._require_auth()
+            if not auth:
+                return
+            username, user = auth
+            if not self._require_module(user, "office"):
+                return
+            title = data.get("title") or "未命名文档"
+            content = data.get("content") or ""
+            collaborators = data.get("collaborators") or []
+            doc_id = len(DOCUMENT_STORE) + 1
+            version = 1
+            record = {
+                "id": doc_id,
+                "title": title,
+                "content": content,
+                "version": version,
+                "collaborators": collaborators,
+                "updated_by": username,
+            }
+            DOCUMENT_STORE.append(record)
+            payload = self.services["document"].edit(doc_id, content) | {"title": title, "version": version}
+            payload["collaborators"] = collaborators
+            self._send_json({"document": payload})
+            return
+
+        if self.path == "/api/office/chat":
+            auth = self._require_auth()
+            if not auth:
+                return
+            username, user = auth
+            if not self._require_module(user, "office"):
+                return
+            channel = data.get("channel") or "general"
+            message = data.get("message") or ""
+            entry = {
+                "channel": channel,
+                "message": message,
+                "from": username,
+            }
+            CHAT_LOG.append(entry)
+            payload = self.services["communication"].chat(channel, message) | {"from": username}
+            self._send_json({"message": payload})
+            return
+
+        if self.path == "/api/oa/approval":
+            auth = self._require_auth()
+            if not auth:
+                return
+            username, user = auth
+            if not self._require_module(user, "oa"):
+                return
+            form = data.get("form") or {}
+            approval_id = len(APPROVALS) + 1
+            record = {
+                "id": approval_id,
+                "form": form,
+                "status": "submitted",
+                "submitted_by": username,
+                "next_step": "manager_review",
+            }
+            APPROVALS.append(record)
+            payload = self.services["oa"].generic_approval(form) | {"id": approval_id, "status": "submitted"}
+            self._send_json({"approval": payload})
+            return
+
+        if self.path == "/api/finance/expense":
+            auth = self._require_auth()
+            if not auth:
+                return
+            username, user = auth
+            if not self._require_module(user, "finance"):
+                return
+            expense = data.get("expense") or {}
+            expense_id = len(EXPENSES) + 1
+            record = {
+                "id": expense_id,
+                "expense": expense,
+                "status": "pending_approval",
+                "submitted_by": username,
+                "next_approver": "财务主管",
+            }
+            EXPENSES.append(record)
+            payload = self.services["finance"].expense_claim(expense) | {
+                "id": expense_id,
+                "status": record["status"],
+                "next_approver": record["next_approver"],
+            }
+            self._send_json({"expense": payload})
             return
 
         self.send_error(HTTPStatus.NOT_FOUND)

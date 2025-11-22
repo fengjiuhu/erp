@@ -37,6 +37,36 @@ const I18N = {
     status_ready: '就绪',
     status_in_progress: '进行中',
     status_planned: '规划中',
+    doc_editor: '在线文档编辑',
+    doc_editor_hint: '创建并保存一份实时协作文档，带协作者列表',
+    doc_title: '标题',
+    doc_body: '正文',
+    doc_collaborators: '协作者',
+    doc_collaborators_placeholder: '例如：小王、小李，逗号分隔',
+    save_document: '保存并生成版本',
+    chat_send: '发送群聊/会议消息',
+    chat_send_hint: '模拟 IM 或视频会议中的发言/共享',
+    chat_channel: '频道',
+    chat_message: '消息内容',
+    send_chat: '发送',
+    latest_activity: '最近动态',
+    latest_activity_hint: '展示刚刚提交的文档版本与聊天记录',
+    refresh: '刷新',
+    expense_form: '费用报销单',
+    expense_form_hint: '录入类别、金额与说明，并生成审批流',
+    expense_type: '报销类别',
+    expense_amount: '金额',
+    expense_desc: '说明',
+    submit_expense: '提交报销',
+    expense_list_hint: '展示刚刚提交的报销及审批去向',
+    approval_form: '提交流程单',
+    approval_form_hint: '模拟请假/报销/采购等审批提交流程',
+    approval_type: '流程类型',
+    approval_amount: '金额/天数',
+    approval_reason: '事由',
+    submit_approval: '提交审批',
+    approval_list_hint: '查看提交过的流程及下一步',
+    feed_empty: '暂无数据，提交一条看看效果',
   },
   en: {
     brand: 'Enterprise Platform',
@@ -74,6 +104,36 @@ const I18N = {
     status_ready: 'Ready',
     status_in_progress: 'In progress',
     status_planned: 'Planned',
+    doc_editor: 'Document editor',
+    doc_editor_hint: 'Create and save a collaborative document with collaborators',
+    doc_title: 'Title',
+    doc_body: 'Body',
+    doc_collaborators: 'Collaborators',
+    doc_collaborators_placeholder: 'e.g. Alice, Bob (comma separated)',
+    save_document: 'Save & version',
+    chat_send: 'Send chat/meeting message',
+    chat_send_hint: 'Simulate IM or meeting broadcast',
+    chat_channel: 'Channel',
+    chat_message: 'Message',
+    send_chat: 'Send',
+    latest_activity: 'Latest activity',
+    latest_activity_hint: 'Recently saved docs and chat posts',
+    refresh: 'Refresh',
+    expense_form: 'Expense claim',
+    expense_form_hint: 'Capture category, amount, and justification',
+    expense_type: 'Category',
+    expense_amount: 'Amount',
+    expense_desc: 'Description',
+    submit_expense: 'Submit expense',
+    expense_list_hint: 'See newly submitted claims and routing',
+    approval_form: 'Submit request',
+    approval_form_hint: 'Send leave/expense/procurement for approval',
+    approval_type: 'Request type',
+    approval_amount: 'Amount / days',
+    approval_reason: 'Reason',
+    submit_approval: 'Submit for approval',
+    approval_list_hint: 'Review submitted forms and next steps',
+    feed_empty: 'Nothing yet — submit to see results',
   },
 };
 
@@ -149,6 +209,76 @@ const ApiClient = {
       return { areas: [] };
     }
     return res.json();
+  },
+  async saveDocument(payload) {
+    const res = await fetch('/api/office/document', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async sendChat(payload) {
+    const res = await fetch('/api/office/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async officeFeed() {
+    const res = await fetch('/api/office/feed');
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return { documents: [], messages: [] };
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async submitApproval(payload) {
+    const res = await fetch('/api/oa/approval', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ form: payload }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async listApprovals() {
+    const res = await fetch('/api/oa/approvals');
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return { items: [] };
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async submitExpense(payload) {
+    const res = await fetch('/api/finance/expense', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expense: payload }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
+  },
+  async listExpenses() {
+    const res = await fetch('/api/finance/expenses');
+    if (res.status === 401) {
+      window.location.href = '/login.html';
+      return { items: [] };
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+    return data;
   },
 };
 
@@ -353,6 +483,186 @@ function renderStatus(status) {
   return `<span class="status-pill ${status}">${label}</span>`;
 }
 
+async function refreshOfficeFeed() {
+  const feed = document.getElementById('office-feed');
+  if (!feed) return;
+  feed.innerHTML = '';
+  const lang = currentLang();
+  try {
+    const { documents, messages } = await ApiClient.officeFeed();
+    if (!documents.length && !messages.length) {
+      feed.innerHTML = `<p class="muted">${I18N[lang].feed_empty}</p>`;
+      return;
+    }
+    documents.forEach((doc) => {
+      const div = document.createElement('div');
+      div.className = 'feed-item';
+      div.innerHTML = `<p class="feed-title">${doc.title} · v${doc.version}</p><p class="feed-meta">${doc.updated_by || ''}</p>`;
+      feed.appendChild(div);
+    });
+    messages.forEach((msg) => {
+      const div = document.createElement('div');
+      div.className = 'feed-item';
+      div.innerHTML = `<p class="feed-title">#${msg.channel}</p><p class="feed-meta">${msg.from || ''} · ${msg.message}</p>`;
+      feed.appendChild(div);
+    });
+  } catch (err) {
+    feed.innerHTML = `<p class="warning">${(err || {}).message || err}</p>`;
+  }
+}
+
+async function refreshApprovalFeed() {
+  const feed = document.getElementById('approval-feed');
+  if (!feed) return;
+  feed.innerHTML = '';
+  const lang = currentLang();
+  try {
+    const { items } = await ApiClient.listApprovals();
+    if (!items.length) {
+      feed.innerHTML = `<p class="muted">${I18N[lang].feed_empty}</p>`;
+      return;
+    }
+    items.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'feed-item';
+      const form = item.form || {};
+      div.innerHTML = `<p class="feed-title">${form.type || 'form'} · ${item.status}</p><p class="feed-meta">${form.reason || ''} · ${item.next_step || ''}</p>`;
+      feed.appendChild(div);
+    });
+  } catch (err) {
+    feed.innerHTML = `<p class="warning">${(err || {}).message || err}</p>`;
+  }
+}
+
+async function refreshExpenseFeed() {
+  const feed = document.getElementById('expense-feed');
+  if (!feed) return;
+  feed.innerHTML = '';
+  const lang = currentLang();
+  try {
+    const { items } = await ApiClient.listExpenses();
+    if (!items.length) {
+      feed.innerHTML = `<p class="muted">${I18N[lang].feed_empty}</p>`;
+      return;
+    }
+    items.forEach((item) => {
+      const div = document.createElement('div');
+      div.className = 'feed-item';
+      const exp = item.expense || {};
+      div.innerHTML = `<p class="feed-title">${exp.type || 'expense'} · ${item.status}</p><p class="feed-meta">${exp.description || ''} · ${exp.amount || ''} · ${item.next_approver || ''}</p>`;
+      feed.appendChild(div);
+    });
+  } catch (err) {
+    feed.innerHTML = `<p class="warning">${(err || {}).message || err}</p>`;
+  }
+}
+
+function initOfficeWorkbench() {
+  const docForm = document.getElementById('doc-form');
+  const docOutput = document.getElementById('doc-output');
+  const docStatus = document.getElementById('doc-status');
+  if (docForm) {
+    docForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = (document.getElementById('doc-title') || {}).value || '';
+      const content = (document.getElementById('doc-content') || {}).value || '';
+      const collabs = ((document.getElementById('doc-collab') || {}).value || '')
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean);
+      if (docStatus) docStatus.textContent = I18N[currentLang()].submitting;
+      try {
+        const data = await ApiClient.saveDocument({ title, content, collaborators: collabs });
+        if (docOutput) docOutput.textContent = JSON.stringify(data, null, 2);
+        if (docStatus) docStatus.textContent = I18N[currentLang()].done;
+        refreshOfficeFeed();
+      } catch (err) {
+        if (docOutput) docOutput.textContent = err.toString();
+        if (docStatus) docStatus.textContent = err.message || 'Failed';
+      }
+    });
+  }
+
+  const chatForm = document.getElementById('chat-form');
+  const chatOutput = document.getElementById('chat-output');
+  const chatStatus = document.getElementById('chat-status');
+  if (chatForm) {
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const channel = (document.getElementById('chat-channel') || {}).value || 'general';
+      const message = (document.getElementById('chat-message') || {}).value || '';
+      if (chatStatus) chatStatus.textContent = I18N[currentLang()].running;
+      try {
+        const data = await ApiClient.sendChat({ channel, message });
+        if (chatOutput) chatOutput.textContent = JSON.stringify(data, null, 2);
+        if (chatStatus) chatStatus.textContent = I18N[currentLang()].done;
+        refreshOfficeFeed();
+      } catch (err) {
+        if (chatOutput) chatOutput.textContent = err.toString();
+        if (chatStatus) chatStatus.textContent = err.message || 'Failed';
+      }
+    });
+  }
+
+  const refreshBtn = document.getElementById('office-refresh');
+  if (refreshBtn) refreshBtn.addEventListener('click', refreshOfficeFeed);
+  refreshOfficeFeed();
+}
+
+function initOAWorkbench() {
+  const form = document.getElementById('approval-form');
+  const output = document.getElementById('approval-output');
+  const statusEl = document.getElementById('approval-status');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const type = (document.getElementById('approval-type') || {}).value || 'leave';
+      const amount = parseFloat((document.getElementById('approval-amount') || {}).value || '0');
+      const reason = (document.getElementById('approval-reason') || {}).value || '';
+      if (statusEl) statusEl.textContent = I18N[currentLang()].submitting;
+      try {
+        const data = await ApiClient.submitApproval({ type, amount, reason });
+        if (output) output.textContent = JSON.stringify(data, null, 2);
+        if (statusEl) statusEl.textContent = I18N[currentLang()].done;
+        refreshApprovalFeed();
+      } catch (err) {
+        if (output) output.textContent = err.toString();
+        if (statusEl) statusEl.textContent = err.message || 'Failed';
+      }
+    });
+  }
+  const refreshBtn = document.getElementById('approval-refresh');
+  if (refreshBtn) refreshBtn.addEventListener('click', refreshApprovalFeed);
+  refreshApprovalFeed();
+}
+
+function initFinanceWorkbench() {
+  const form = document.getElementById('expense-form');
+  const output = document.getElementById('expense-output');
+  const statusEl = document.getElementById('expense-status');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const type = (document.getElementById('expense-type') || {}).value || 'travel';
+      const amount = parseFloat((document.getElementById('expense-amount') || {}).value || '0');
+      const description = (document.getElementById('expense-desc') || {}).value || '';
+      if (statusEl) statusEl.textContent = I18N[currentLang()].submitting;
+      try {
+        const data = await ApiClient.submitExpense({ type, amount, description });
+        if (output) output.textContent = JSON.stringify(data, null, 2);
+        if (statusEl) statusEl.textContent = I18N[currentLang()].done;
+        refreshExpenseFeed();
+      } catch (err) {
+        if (output) output.textContent = err.toString();
+        if (statusEl) statusEl.textContent = err.message || 'Failed';
+      }
+    });
+  }
+  const refreshBtn = document.getElementById('expense-refresh');
+  if (refreshBtn) refreshBtn.addEventListener('click', refreshExpenseFeed);
+  refreshExpenseFeed();
+}
+
 async function createUser() {
   const statusEl = document.getElementById('create-status');
   const username = (document.getElementById('new-username') || {}).value || '';
@@ -423,4 +733,7 @@ window.AppUI = {
   renderModuleSelector,
   setModuleCopy,
   applyI18n,
+  initOfficeWorkbench,
+  initOAWorkbench,
+  initFinanceWorkbench,
 };

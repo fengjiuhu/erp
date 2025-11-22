@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>身份与安全</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow" data-i18n="subtitle">统一门户 · 业务中心</p>
+      <h2 id="module-title" style="margin:6px 0 0">身份与安全</h2>
+      <p id="module-desc" style="margin:4px 0 0;color:#5b6b81">账号、权限、审计与安全策略</p>
+    </div>
+    <div id="nav"></div>
+  </header>
+  <main>
+    <div id="body">
+      <p id="user-info" style="color:#9bb6c8"></p>
+      <section class="card">
+        <div class="card-title">
+          <div>
+            <h3 data-i18n="quick_tasks">快捷任务</h3>
+            <p class="muted">RBAC / ABAC / 审计操作快速触发</p>
+          </div>
+        </div>
+        <div id="tasks" class="pill-group"></div>
+        <button class="primary" id="run" data-i18n="run_selected">执行任务</button>
+        <span id="status" style="margin-left:10px;color:#9bb6c8"></span>
+        <pre id="output" data-i18n="awaiting">等待执行...</pre>
+      </section>
+      <section class="card">
+        <div class="card-title">
+          <div>
+            <h3 data-i18n="admin_create">管理员 · 创建用户并分配模块</h3>
+            <p class="muted">默认管理员：admin / admin，支持创建子账号并分配部门与模块</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <label><span data-i18n="username">用户名</span> <input id="new-username" placeholder="jane" /></label>
+          <label><span data-i18n="password">密码</span> <input id="new-password" placeholder="changeme" /></label>
+          <label><span data-i18n="department">部门</span> <input id="new-department" placeholder="研发中心" /></label>
+        </div>
+        <div id="module-select"></div>
+        <button class="primary" style="margin-top:10px" data-i18n="create_user" onclick="AppUI.createUser()">创建用户</button>
+        <p id="create-status" class="warning"></p>
+      </section>
+    </div>
+  </main>
+  <script src="/static/app.js"></script>
+  <script>
+    AppUI.applyI18n();
+    AppUI.setModuleCopy('iam');
+    AppUI.renderModuleSelector();
+    AppUI.bootstrapModulePage('iam');
+  </script>
+</body>
+</html>

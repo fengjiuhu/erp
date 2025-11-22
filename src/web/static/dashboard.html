@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h2 style="margin:0">Enterprise Platform</h2>
+      <p style="margin:4px 0 0;color:#a8c6da">Module landing</p>
+    </div>
+    <div id="nav"></div>
+  </header>
+  <main>
+    <div id="body">
+      <p id="user-info" style="color:#9bb6c8"></p>
+      <section>
+        <h3>Your modules</h3>
+        <div id="module-grid" class="grid"></div>
+      </section>
+    </div>
+  </main>
+  <script src="/static/app.js"></script>
+  <script>AppUI.initDashboard();</script>
+</body>
+</html>

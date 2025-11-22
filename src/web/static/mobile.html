@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mobile Module</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <h2 style="margin:0">Mobile Module</h2>
+      <p style="margin:4px 0 0;color:#a8c6da">Execute Mobile workflows</p>
+    </div>
+    <div id="nav"></div>
+  </header>
+  <main>
+    <div id="body">
+      <p id="user-info" style="color:#9bb6c8"></p>
+      <section class="card">
+        <h3>Module tasks</h3>
+        <div id="tasks" class="form-grid"></div>
+        <button class="primary" id="run">Run selected</button>
+        <span id="status" style="margin-left:10px;color:#9bb6c8"></span>
+        <pre id="output">Awaiting execution...</pre>
+      </section>
+    </div>
+  </main>
+  <script src="/static/app.js"></script>
+  <script>AppUI.bootstrapModulePage('mobile');</script>
+</body>
+</html>

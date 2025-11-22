@@ -173,6 +173,100 @@ MODULE_META: Dict[str, Dict[str, object]] = {
     },
 }
 
+FEATURE_MAP: List[Dict[str, object]] = [
+    {
+        "key": "platform",
+        "title": {"zh": "基础支撑平台", "en": "Platform & Security"},
+        "items": [
+            {"name": {"zh": "统一权限 / SSO / MFA", "en": "IAM + SSO + MFA"}, "status": "ready"},
+            {"name": {"zh": "API 网关与流量控制", "en": "API gateway & throttling"}, "status": "ready"},
+            {"name": {"zh": "消息队列 / 工作流 / 任务调度", "en": "MQ + Workflow + Scheduler"}, "status": "in_progress"},
+            {"name": {"zh": "安全审计与WAF", "en": "Security audit & WAF"}, "status": "ready"},
+        ],
+    },
+    {
+        "key": "office",
+        "title": {"zh": "办公协作", "en": "Office Suite"},
+        "items": [
+            {"name": {"zh": "文档在线编辑 / 版本 / 评论", "en": "Docs with versions & comments"}, "status": "in_progress"},
+            {"name": {"zh": "IM / 视频会议 / 邮件", "en": "Chat, video meeting, mail"}, "status": "planned"},
+            {"name": {"zh": "共享日历与提醒", "en": "Shared calendars"}, "status": "ready"},
+        ],
+    },
+    {
+        "key": "oa",
+        "title": {"zh": "流程与行政", "en": "Workflow & OA"},
+        "items": [
+            {"name": {"zh": "通用审批（请假、报销等）", "en": "Approvals (leave, expense)"}, "status": "ready"},
+            {"name": {"zh": "公文与催办", "en": "Documents & reminders"}, "status": "planned"},
+            {"name": {"zh": "流程设计器与子流程", "en": "Process designer"}, "status": "in_progress"},
+        ],
+    },
+    {
+        "key": "hrm",
+        "title": {"zh": "人力资源", "en": "HRM"},
+        "items": [
+            {"name": {"zh": "招聘与面试", "en": "Hiring & interviews"}, "status": "planned"},
+            {"name": {"zh": "员工档案 / 入转调离", "en": "Employee records & lifecycle"}, "status": "ready"},
+            {"name": {"zh": "考勤排班 / 异常", "en": "Attendance & shifts"}, "status": "ready"},
+            {"name": {"zh": "绩效 / 薪资", "en": "Performance & payroll"}, "status": "in_progress"},
+        ],
+    },
+    {
+        "key": "finance",
+        "title": {"zh": "财务", "en": "Finance"},
+        "items": [
+            {"name": {"zh": "总账与凭证", "en": "GL & vouchers"}, "status": "in_progress"},
+            {"name": {"zh": "应收应付 / 发票", "en": "AR / AP / invoicing"}, "status": "planned"},
+            {"name": {"zh": "预算与报销", "en": "Budget & expenses"}, "status": "ready"},
+        ],
+    },
+    {
+        "key": "supply",
+        "title": {"zh": "供应链与运营", "en": "Supply & Operations"},
+        "items": [
+            {"name": {"zh": "采购 / 供应商", "en": "Procurement & vendors"}, "status": "ready"},
+            {"name": {"zh": "仓储 WMS / 库存预警", "en": "WMS & stock alerts"}, "status": "in_progress"},
+            {"name": {"zh": "销售 / 物流跟踪", "en": "Sales & logistics"}, "status": "planned"},
+        ],
+    },
+    {
+        "key": "project",
+        "title": {"zh": "项目管理", "en": "Project Management"},
+        "items": [
+            {"name": {"zh": "里程碑 / 甘特图", "en": "Milestones & Gantt"}, "status": "ready"},
+            {"name": {"zh": "成本与风险", "en": "Cost & risk"}, "status": "in_progress"},
+        ],
+    },
+    {
+        "key": "crm",
+        "title": {"zh": "客户与客服", "en": "CRM & Support"},
+        "items": [
+            {"name": {"zh": "销售漏斗 / 商机", "en": "Pipeline & opportunities"}, "status": "ready"},
+            {"name": {"zh": "客服工单 / SLA", "en": "Tickets & SLA"}, "status": "ready"},
+            {"name": {"zh": "合同与回款", "en": "Contracts & receivables"}, "status": "planned"},
+        ],
+    },
+    {
+        "key": "knowledge",
+        "title": {"zh": "知识与学习", "en": "Knowledge & LMS"},
+        "items": [
+            {"name": {"zh": "知识库 / FAQ / 搜索", "en": "Knowledge base & search"}, "status": "ready"},
+            {"name": {"zh": "课程 / 考试 / 证书", "en": "Courses, exams, certificates"}, "status": "in_progress"},
+        ],
+    },
+    {
+        "key": "ops",
+        "title": {"zh": "门户、运维与BI", "en": "Portal, ITSM, BI"},
+        "items": [
+            {"name": {"zh": "企业门户 / 移动审批", "en": "Portal & mobile"}, "status": "ready"},
+            {"name": {"zh": "IT 工单 / CMDB / 监控", "en": "IT tickets, CMDB, monitoring"}, "status": "in_progress"},
+            {"name": {"zh": "数据大屏 / 报表", "en": "Dashboards & BI"}, "status": "ready"},
+            {"name": {"zh": "低代码扩展 / API 调用", "en": "Low-code & extensions"}, "status": "planned"},
+        ],
+    },
+]
+
 DEFAULT_ADMIN = {
     "password": "admin",
     "modules": [k for k in MODULE_META.keys() if k != "dashboard"],
@@ -183,6 +277,10 @@ DEFAULT_ADMIN = {
 
 USER_DB: Dict[str, Dict[str, object]] = {"admin": DEFAULT_ADMIN.copy()}
 SESSIONS: Dict[str, str] = {}
+DOCUMENT_STORE: List[Dict[str, object]] = []
+CHAT_LOG: List[Dict[str, object]] = []
+APPROVALS: List[Dict[str, object]] = []
+EXPENSES: List[Dict[str, object]] = []
 
 
 class DemoHandler(BaseHTTPRequestHandler):
@@ -267,6 +365,12 @@ class DemoHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "unauthorized"}, HTTPStatus.UNAUTHORIZED)
         return user
 
+    def _require_module(self, user: Dict[str, object], module: str) -> bool:
+        if module not in user.get("modules", []):
+            self._send_json({"error": "forbidden", "module": module}, HTTPStatus.FORBIDDEN)
+            return False
+        return True
+
     # --- response helpers -----------------------------------------------
     def _send_json(self, payload: Dict, status: HTTPStatus = HTTPStatus.OK):
         body = json.dumps(payload).encode()
@@ -340,6 +444,48 @@ class DemoHandler(BaseHTTPRequestHandler):
             allowed = [m for m in user.get("modules", []) if m in MODULE_META]
             payload = [MODULE_META[m] | {"key": m} for m in allowed]
             self._send_json({"modules": payload, "all": payload})
+            return
+
+        if self.path == "/api/features":
+            auth = self._require_auth()
+            if not auth:
+                return
+            self._send_json({"areas": FEATURE_MAP})
+            return
+
+        if self.path == "/api/office/feed":
+            auth = self._require_auth()
+            if not auth:
+                return
+            _, user = auth
+            if not self._require_module(user, "office"):
+                return
+            self._send_json(
+                {
+                    "documents": DOCUMENT_STORE[-5:],
+                    "messages": CHAT_LOG[-5:],
+                }
+            )
+            return
+
+        if self.path == "/api/oa/approvals":
+            auth = self._require_auth()
+            if not auth:
+                return
+            _, user = auth
+            if not self._require_module(user, "oa"):
+                return
+            self._send_json({"items": APPROVALS[-10:]})
+            return
+
+        if self.path == "/api/finance/expenses":
+            auth = self._require_auth()
+            if not auth:
+                return
+            _, user = auth
+            if not self._require_module(user, "finance"):
+                return
+            self._send_json({"items": EXPENSES[-10:]})
             return
 
         self.send_error(HTTPStatus.NOT_FOUND)
@@ -421,6 +567,97 @@ class DemoHandler(BaseHTTPRequestHandler):
             results = run_concurrent(tasks)
             ordered = {task: results[idx] for idx, task in enumerate(requested)}
             self._send_json({"results": ordered, "user": username})
+            return
+
+        if self.path == "/api/office/document":
+            auth = self._require_auth()
+            if not auth:
+                return
+            username, user = auth
+            if not self._require_module(user, "office"):
+                return
+            title = data.get("title") or "未命名文档"
+            content = data.get("content") or ""
+            collaborators = data.get("collaborators") or []
+            doc_id = len(DOCUMENT_STORE) + 1
+            version = 1
+            record = {
+                "id": doc_id,
+                "title": title,
+                "content": content,
+                "version": version,
+                "collaborators": collaborators,
+                "updated_by": username,
+            }
+            DOCUMENT_STORE.append(record)
+            payload = self.services["document"].edit(doc_id, content) | {"title": title, "version": version}
+            payload["collaborators"] = collaborators
+            self._send_json({"document": payload})
+            return
+
+        if self.path == "/api/office/chat":
+            auth = self._require_auth()
+            if not auth:
+                return
+            username, user = auth
+            if not self._require_module(user, "office"):
+                return
+            channel = data.get("channel") or "general"
+            message = data.get("message") or ""
+            entry = {
+                "channel": channel,
+                "message": message,
+                "from": username,
+            }
+            CHAT_LOG.append(entry)
+            payload = self.services["communication"].chat(channel, message) | {"from": username}
+            self._send_json({"message": payload})
+            return
+
+        if self.path == "/api/oa/approval":
+            auth = self._require_auth()
+            if not auth:
+                return
+            username, user = auth
+            if not self._require_module(user, "oa"):
+                return
+            form = data.get("form") or {}
+            approval_id = len(APPROVALS) + 1
+            record = {
+                "id": approval_id,
+                "form": form,
+                "status": "submitted",
+                "submitted_by": username,
+                "next_step": "manager_review",
+            }
+            APPROVALS.append(record)
+            payload = self.services["oa"].generic_approval(form) | {"id": approval_id, "status": "submitted"}
+            self._send_json({"approval": payload})
+            return
+
+        if self.path == "/api/finance/expense":
+            auth = self._require_auth()
+            if not auth:
+                return
+            username, user = auth
+            if not self._require_module(user, "finance"):
+                return
+            expense = data.get("expense") or {}
+            expense_id = len(EXPENSES) + 1
+            record = {
+                "id": expense_id,
+                "expense": expense,
+                "status": "pending_approval",
+                "submitted_by": username,
+                "next_approver": "财务主管",
+            }
+            EXPENSES.append(record)
+            payload = self.services["finance"].expense_claim(expense) | {
+                "id": expense_id,
+                "status": record["status"],
+                "next_approver": record["next_approver"],
+            }
+            self._send_json({"expense": payload})
             return
 
         self.send_error(HTTPStatus.NOT_FOUND)

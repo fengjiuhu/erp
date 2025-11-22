@@ -30,6 +30,71 @@
         <span id="status" class="muted"></span>
         <pre id="output" data-i18n="awaiting">等待执行...</pre>
       </section>
+
+      <section class="card">
+        <div class="card-title">
+          <div>
+            <h3 data-i18n="doc_editor">在线文档编辑</h3>
+            <p class="muted" data-i18n="doc_editor_hint">创建并保存一份实时协作文档，带协作者列表</p>
+          </div>
+        </div>
+        <form id="doc-form" class="stack" autocomplete="off">
+          <div class="form-grid">
+            <label>
+              <span data-i18n="doc_title">标题</span>
+              <input id="doc-title" data-i18n-placeholder="doc_title" required />
+            </label>
+            <label>
+              <span data-i18n="doc_collaborators">协作者</span>
+              <input id="doc-collab" data-i18n-placeholder="doc_collaborators_placeholder" />
+            </label>
+          </div>
+          <label class="stack">
+            <span data-i18n="doc_body">正文</span>
+            <textarea id="doc-content" rows="5" data-i18n-placeholder="doc_body"></textarea>
+          </label>
+          <div class="actions">
+            <button class="primary" type="submit" data-i18n="save_document">保存并生成版本</button>
+            <span id="doc-status" class="muted"></span>
+          </div>
+        </form>
+        <pre id="doc-output" data-i18n="awaiting">等待执行...</pre>
+      </section>
+
+      <section class="card">
+        <div class="card-title">
+          <div>
+            <h3 data-i18n="chat_send">发送群聊/会议消息</h3>
+            <p class="muted" data-i18n="chat_send_hint">模拟 IM 或视频会议中的发言/共享</p>
+          </div>
+        </div>
+        <form id="chat-form" class="form-grid" autocomplete="off">
+          <label>
+            <span data-i18n="chat_channel">频道</span>
+            <input id="chat-channel" value="general" />
+          </label>
+          <label>
+            <span data-i18n="chat_message">消息内容</span>
+            <input id="chat-message" data-i18n-placeholder="chat_message" />
+          </label>
+          <div class="actions" style="grid-column: 1 / -1;">
+            <button class="primary" type="submit" data-i18n="send_chat">发送</button>
+            <span id="chat-status" class="muted"></span>
+          </div>
+        </form>
+        <pre id="chat-output" data-i18n="awaiting">等待执行...</pre>
+      </section>
+
+      <section class="card">
+        <div class="card-title">
+          <div>
+            <h3 data-i18n="latest_activity">最近动态</h3>
+            <p class="muted" data-i18n="latest_activity_hint">展示刚刚提交的文档版本与聊天记录</p>
+          </div>
+          <button class="ghost" type="button" id="office-refresh" data-i18n="refresh">刷新</button>
+        </div>
+        <div id="office-feed" class="feed"></div>
+      </section>
     </div>
   </main>
   <script src="/static/app.js"></script>
@@ -37,6 +102,7 @@
     AppUI.applyI18n();
     AppUI.setModuleCopy('office');
     AppUI.bootstrapModulePage('office');
+    AppUI.initOfficeWorkbench();
   </script>
 </body>
 </html>

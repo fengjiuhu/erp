@@ -44,26 +44,138 @@ from src.services.supply_chain import SupplyChainService
 
 UI_DIR = Path(__file__).resolve().parent / "static"
 
-MODULES = {
-    "iam": "IAM & Security",
-    "integration": "Integration",
-    "office": "Office",
-    "oa": "OA",
-    "hrm": "HRM",
-    "finance": "Finance",
-    "supply": "Supply Chain",
-    "project": "Project",
-    "crm": "CRM & Tickets",
-    "knowledge": "Knowledge & Learning",
-    "mobile": "Portal & Mobile",
-    "itsm": "ITSM & BI",
-    "developer": "Developer",
-    "asset": "Asset",
+MODULE_META: Dict[str, Dict[str, object]] = {
+    "dashboard": {
+        "path": "/dashboard.html",
+        "label": {"zh": "驾驶舱", "en": "Dashboard"},
+        "description": {"zh": "模块导航与快捷入口", "en": "Module landing"},
+        "tasks": [],
+    },
+    "iam": {
+        "path": "/iam.html",
+        "label": {"zh": "身份与安全", "en": "IAM & Security"},
+        "description": {"zh": "账号、权限、审计与安全策略", "en": "Accounts, permissions, audit, security"},
+        "tasks": [
+            {"id": "iam:create_user", "label": {"zh": "创建用户", "en": "Create User"}},
+            {"id": "iam:sync_ldap", "label": {"zh": "同步 LDAP/AD", "en": "Sync LDAP"}},
+            {"id": "security:waf", "label": {"zh": "WAF过滤", "en": "WAF Filter"}},
+        ],
+    },
+    "integration": {
+        "path": "/integration.html",
+        "label": {"zh": "集成与网关", "en": "Integration"},
+        "description": {"zh": "API 网关、消息与数据同步", "en": "API gateway, messaging, sync"},
+        "tasks": [
+            {"id": "integration:kafka", "label": {"zh": "Kafka 入队", "en": "Kafka enqueue"}},
+        ],
+    },
+    "office": {
+        "path": "/office.html",
+        "label": {"zh": "办公套件", "en": "Office Suite"},
+        "description": {"zh": "文档、沟通、日历协同", "en": "Docs, chat, calendar"},
+        "tasks": [
+            {"id": "document:edit", "label": {"zh": "文档编辑", "en": "Document edit"}},
+            {"id": "communication:chat", "label": {"zh": "聊天消息", "en": "Chat message"}},
+            {"id": "calendar:remind", "label": {"zh": "日历提醒", "en": "Calendar remind"}},
+        ],
+    },
+    "oa": {
+        "path": "/oa.html",
+        "label": {"zh": "流程与行政", "en": "OA / Workflow"},
+        "description": {"zh": "流程审批与行政办公", "en": "Approvals and admin"},
+        "tasks": [
+            {"id": "oa:approval", "label": {"zh": "通用审批", "en": "Generic approval"}},
+        ],
+    },
+    "hrm": {
+        "path": "/hrm.html",
+        "label": {"zh": "人力资源", "en": "HRM"},
+        "description": {"zh": "员工、考勤、薪酬", "en": "Employees, attendance, payroll"},
+        "tasks": [
+            {"id": "hrm:payroll", "label": {"zh": "薪资发放", "en": "Payroll run"}},
+        ],
+    },
+    "finance": {
+        "path": "/finance.html",
+        "label": {"zh": "财务", "en": "Finance"},
+        "description": {"zh": "费用、总账、预算", "en": "Expenses, GL, budgeting"},
+        "tasks": [
+            {"id": "finance:expense", "label": {"zh": "费用报销", "en": "Expense claim"}},
+        ],
+    },
+    "supply": {
+        "path": "/supply.html",
+        "label": {"zh": "供应链", "en": "Supply Chain"},
+        "description": {"zh": "采购、仓储、物流", "en": "Procurement, warehousing, logistics"},
+        "tasks": [
+            {"id": "supply:po", "label": {"zh": "采购订单", "en": "Purchase order"}},
+        ],
+    },
+    "project": {
+        "path": "/project.html",
+        "label": {"zh": "项目管理", "en": "Project Mgmt"},
+        "description": {"zh": "里程碑、进度与成本", "en": "Milestones, progress, cost"},
+        "tasks": [
+            {"id": "project:gantt", "label": {"zh": "甘特数据", "en": "Gantt data"}},
+        ],
+    },
+    "crm": {
+        "path": "/crm.html",
+        "label": {"zh": "客户与工单", "en": "CRM & Tickets"},
+        "description": {"zh": "客户关系与客服工单", "en": "Customer and tickets"},
+        "tasks": [
+            {"id": "crm:pipeline", "label": {"zh": "销售漏斗", "en": "Pipeline"}},
+            {"id": "ticket:create", "label": {"zh": "创建工单", "en": "Create ticket"}},
+        ],
+    },
+    "knowledge": {
+        "path": "/knowledge.html",
+        "label": {"zh": "知识与学习", "en": "Knowledge & Learning"},
+        "description": {"zh": "知识库与培训", "en": "Knowledge base and training"},
+        "tasks": [
+            {"id": "knowledge:search", "label": {"zh": "知识检索", "en": "Knowledge search"}},
+            {"id": "learning:exam", "label": {"zh": "考试安排", "en": "Exam scheduling"}},
+        ],
+    },
+    "mobile": {
+        "path": "/mobile.html",
+        "label": {"zh": "门户与移动", "en": "Portal & Mobile"},
+        "description": {"zh": "移动门户与审批", "en": "Mobile portal and approvals"},
+        "tasks": [
+            {"id": "mobile:approve", "label": {"zh": "移动审批", "en": "Mobile approval"}},
+            {"id": "portal:todo", "label": {"zh": "门户待办", "en": "Portal todos"}},
+        ],
+    },
+    "itsm": {
+        "path": "/itsm.html",
+        "label": {"zh": "运维与BI", "en": "ITSM & BI"},
+        "description": {"zh": "IT 服务与报表", "en": "IT services and dashboards"},
+        "tasks": [
+            {"id": "itsm:monitor", "label": {"zh": "运维监控", "en": "Monitor"}},
+            {"id": "bi:dashboard", "label": {"zh": "BI 大屏", "en": "BI dashboard"}},
+        ],
+    },
+    "developer": {
+        "path": "/developer.html",
+        "label": {"zh": "开发者平台", "en": "Developer"},
+        "description": {"zh": "低代码与扩展", "en": "Low-code and extensions"},
+        "tasks": [
+            {"id": "developer:form", "label": {"zh": "表单设计", "en": "Form designer"}},
+        ],
+    },
+    "asset": {
+        "path": "/asset.html",
+        "label": {"zh": "资产中心", "en": "Asset"},
+        "description": {"zh": "资产与库存", "en": "Assets and inventory"},
+        "tasks": [
+            {"id": "asset:audit", "label": {"zh": "资产审计", "en": "Asset audit"}},
+        ],
+    },
 }
 
 DEFAULT_ADMIN = {
     "password": "admin",
-    "modules": list(MODULES.keys()),
+    "modules": [k for k in MODULE_META.keys() if k != "dashboard"],
     "department": "HQ",
     "role": "admin",
 }
@@ -220,6 +332,16 @@ class DemoHandler(BaseHTTPRequestHandler):
             )
             return
 
+        if self.path == "/api/modules":
+            auth = self._require_auth()
+            if not auth:
+                return
+            _, user = auth
+            allowed = [m for m in user.get("modules", []) if m in MODULE_META]
+            payload = [MODULE_META[m] | {"key": m} for m in allowed]
+            self._send_json({"modules": payload, "all": payload})
+            return
+
         self.send_error(HTTPStatus.NOT_FOUND)
 
     def do_POST(self):  # noqa: N802
@@ -267,7 +389,7 @@ class DemoHandler(BaseHTTPRequestHandler):
                 return
             new_username = data.get("username") or f"user-{uuid.uuid4().hex[:6]}"
             password = data.get("password") or "changeme"
-            modules = [m for m in data.get("modules", []) if m in MODULES]
+            modules = [m for m in data.get("modules", []) if m in MODULE_META and m != "dashboard"]
             department = data.get("department", "General")
             USER_DB[new_username] = {
                 "password": password,

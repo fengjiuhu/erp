@@ -27,6 +27,7 @@ This repository now contains two pieces:
    - Admin can create users and assign module access in **IAM & Security**.
    - Each major module (IAM, Office, OA, HRM, Finance, Supply, Project, CRM, Knowledge/LMS, Portal/Mobile, ITSM/BI, Developer, Asset) has its own page with runnable tasks.
    - Use the top-right language switch (中文 / English) to flip all navigation and prompts.
+   - Frontend data is now pulled via `/api/me` and `/api/modules`, with the shared `app.ts` (compiled to `app.js`) keeping typed fetch helpers to maintain a clean API-only boundary.
 5. Extend any service under `src/services/` to plug in real logic per feature bullet.
 
 ### Project Layout Highlights

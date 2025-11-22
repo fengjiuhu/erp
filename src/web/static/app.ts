@@ -1,6 +1,38 @@
 const LANG_STORAGE_KEY = 'erp_lang';
 
-const I18N = {
+type Lang = 'zh' | 'en';
+type TranslationMap = Record<Lang, string>;
+
+interface I18nTable {
+  [key: string]: string | ((arg?: string) => string);
+}
+
+interface ModuleTask {
+  id: string;
+  label: TranslationMap;
+}
+
+interface ModuleMeta {
+  key: string;
+  path: string;
+  label: TranslationMap;
+  description: TranslationMap;
+  tasks: ModuleTask[];
+}
+
+interface MeResponse {
+  username: string;
+  modules: string[];
+  department?: string;
+  role?: string;
+}
+
+interface ModulesResponse {
+  modules: ModuleMeta[];
+  all?: ModuleMeta[];
+}
+
+const I18N: Record<Lang, I18nTable> = {
   zh: {
     brand: '企业协同平台',
     subtitle: '统一门户 · 业务中心',
@@ -25,7 +57,7 @@ const I18N = {
     password: '密码',
     department: '部门',
     submitting: '提交中...',
-    created_user: (u) => `已创建用户 ${u}`,
+    created_user: (u?: string) => `已创建用户 ${u}`,
     no_permission: '无权限访问该模块。',
     language_toggle: '中文 / English',
     dashboard_subtitle: '模块导航与快捷入口',
@@ -55,7 +87,7 @@ const I18N = {
     password: 'Password',
     department: 'Department',
     submitting: 'Submitting...',
-    created_user: (u) => `Created user ${u}`,
+    created_user: (u?: string) => `Created user ${u}`,
     no_permission: 'No permission for this module.',
     language_toggle: '中文 / English',
     dashboard_subtitle: 'Module landing',
@@ -63,7 +95,7 @@ const I18N = {
   },
 };
 
-const MODULE_FALLBACKS = {
+const MODULE_FALLBACKS: Record<string, ModuleMeta> = {
   dashboard: {
     key: 'dashboard',
     path: '/dashboard.html',
@@ -73,42 +105,44 @@ const MODULE_FALLBACKS = {
   },
 };
 
-let moduleCache = [];
-let meCache = null;
+let moduleCache: ModuleMeta[] = [];
+let meCache: MeResponse | null = null;
 
-function currentLang() {
+function currentLang(): Lang {
   const cached = localStorage.getItem(LANG_STORAGE_KEY);
   return cached === 'en' ? 'en' : 'zh';
 }
 
-function setLang(lang) {
+function setLang(lang: Lang) {
   localStorage.setItem(LANG_STORAGE_KEY, lang);
 }
 
-function t(key) {
+function t(key: string): (arg?: string) => string {
   const lang = currentLang();
   const val = I18N[lang][key];
-  return typeof val === 'function' ? val : () => val;
+  return typeof val === 'function' ? (val as (arg?: string) => string) : () => (val as string);
 }
 
-const ApiClient = {
-  async me() {
+class ApiClient {
+  static async me(): Promise<MeResponse | null> {
     const res = await fetch('/api/me');
     if (res.status === 401) {
       window.location.href = '/login.html';
       return null;
     }
     return res.json();
-  },
-  async modules() {
+  }
+
+  static async modules(): Promise<ModulesResponse> {
     const res = await fetch('/api/modules');
     if (res.status === 401) {
       window.location.href = '/login.html';
       return { modules: [] };
     }
     return res.json();
-  },
-  async runTasks(tasks) {
+  }
+
+  static async runTasks(tasks: string[]): Promise<any> {
     const res = await fetch('/api/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -117,8 +151,9 @@ const ApiClient = {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed');
     return data;
-  },
-  async createUser(payload) {
+  }
+
+  static async createUser(payload: { username: string; password: string; department: string; modules: string[] }) {
     const res = await fetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -127,8 +162,8 @@ const ApiClient = {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed');
     return data;
-  },
-};
+  }
+}
 
 async function loadContext() {
   const [me, modules] = await Promise.all([ApiClient.me(), ApiClient.modules()]);
@@ -143,21 +178,21 @@ function logout() {
   });
 }
 
-function resolveModuleMeta(key) {
+function resolveModuleMeta(key: string): ModuleMeta | undefined {
   return moduleCache.find((m) => m.key === key) || MODULE_FALLBACKS[key];
 }
 
-function buildNav(modules, activeKey) {
+function buildNav(modules: ModuleMeta[], activeKey: string) {
   const nav = document.getElementById('nav');
   if (!nav) return;
   nav.innerHTML = '';
   const lang = currentLang();
 
   const langBtn = document.createElement('button');
-  langBtn.textContent = I18N[lang].language_toggle;
+  langBtn.textContent = I18N[lang].language_toggle as string;
   langBtn.className = 'ghost';
   langBtn.onclick = () => {
-    const next = currentLang() === 'zh' ? 'en' : 'zh';
+    const next: Lang = currentLang() === 'zh' ? 'en' : 'zh';
     setLang(next);
     window.location.reload();
   };
@@ -175,17 +210,17 @@ function buildNav(modules, activeKey) {
   });
 
   const logoutBtn = document.createElement('button');
-  logoutBtn.textContent = I18N[lang].nav_logout;
+  logoutBtn.textContent = I18N[lang].nav_logout as string;
   logoutBtn.id = 'logout';
   logoutBtn.onclick = logout;
   nav.appendChild(logoutBtn);
 }
 
-function renderTasks(moduleKey) {
+function renderTasks(moduleKey: string) {
   const container = document.getElementById('tasks');
   if (!container) return;
   const meta = resolveModuleMeta(moduleKey);
-  const list = (meta === null || meta === void 0 ? void 0 : meta.tasks) || [];
+  const list = meta?.tasks || [];
   const lang = currentLang();
   container.innerHTML = '';
   list.forEach((task) => {
@@ -195,22 +230,22 @@ function renderTasks(moduleKey) {
   });
 }
 
-async function runSelected(moduleKey) {
+async function runSelected(moduleKey: string) {
   const output = document.getElementById('output');
   const statusEl = document.getElementById('status');
-  const btn = document.getElementById('run');
-  const selected = Array.from(document.querySelectorAll('#tasks input[type=checkbox]:checked')).map((c) => c.value);
+  const btn = document.getElementById('run') as HTMLButtonElement | null;
+  const selected = Array.from(document.querySelectorAll('#tasks input[type=checkbox]:checked')).map((c) => (c as HTMLInputElement).value);
   if (!selected.length) {
-    if (statusEl) statusEl.textContent = I18N[currentLang()].pick_one || '';
+    if (statusEl) statusEl.textContent = (I18N[currentLang()].pick_one as string) || '';
     return;
   }
   if (btn) btn.disabled = true;
-  if (statusEl) statusEl.textContent = I18N[currentLang()].running;
+  if (statusEl) statusEl.textContent = I18N[currentLang()].running as string;
   try {
     const data = await ApiClient.runTasks(selected);
     if (output) output.textContent = JSON.stringify(data, null, 2);
-    if (statusEl) statusEl.textContent = I18N[currentLang()].done;
-  } catch (err) {
+    if (statusEl) statusEl.textContent = I18N[currentLang()].done as string;
+  } catch (err: any) {
     if (statusEl) statusEl.textContent = err.message || 'Error';
     if (output) output.textContent = err.toString();
   } finally {
@@ -218,7 +253,7 @@ async function runSelected(moduleKey) {
   }
 }
 
-async function bootstrapModulePage(moduleKey) {
+async function bootstrapModulePage(moduleKey: string) {
   try {
     const { me, modules } = await loadContext();
     if (!me) return;
@@ -264,15 +299,15 @@ async function initDashboard() {
 
 async function createUser() {
   const statusEl = document.getElementById('create-status');
-  const username = (document.getElementById('new-username') || {}).value || '';
-  const password = (document.getElementById('new-password') || {}).value || '';
-  const department = (document.getElementById('new-department') || {}).value || '';
-  const modules = Array.from(document.querySelectorAll('#module-select input[type=checkbox]:checked')).map((c) => c.value);
-  if (statusEl) statusEl.textContent = I18N[currentLang()].submitting;
+  const username = (document.getElementById('new-username') as HTMLInputElement | null)?.value || '';
+  const password = (document.getElementById('new-password') as HTMLInputElement | null)?.value || '';
+  const department = (document.getElementById('new-department') as HTMLInputElement | null)?.value || '';
+  const modules = Array.from(document.querySelectorAll('#module-select input[type=checkbox]:checked')).map((c) => (c as HTMLInputElement).value);
+  if (statusEl) statusEl.textContent = I18N[currentLang()].submitting as string;
   try {
     const data = await ApiClient.createUser({ username, password, department, modules });
     if (statusEl) statusEl.textContent = t('created_user')(data.created);
-  } catch (err) {
+  } catch (err: any) {
     if (statusEl) statusEl.textContent = err.message || 'Failed';
   }
 }
@@ -290,7 +325,7 @@ function renderModuleSelector() {
   });
 }
 
-function setModuleCopy(moduleKey) {
+function setModuleCopy(moduleKey: string) {
   const meta = resolveModuleMeta(moduleKey);
   const lang = currentLang();
   if (!meta) return;
@@ -308,17 +343,17 @@ function applyI18n() {
     if (!key) return;
     const val = I18N[lang][key];
     if (typeof val === 'function') return;
-    el.textContent = val;
+    el.textContent = val as string;
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
     const key = el.getAttribute('data-i18n-placeholder');
     if (!key) return;
     const val = I18N[lang][key];
-    if (val) el.setAttribute('placeholder', val);
+    if (val) el.setAttribute('placeholder', val as string);
   });
 }
 
-window.AppUI = {
+(window as any).AppUI = {
   bootstrapModulePage,
   initDashboard,
   createUser,

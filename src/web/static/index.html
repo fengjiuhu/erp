@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enterprise Platform Demo UI</title>
+  <style>
+    :root {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0b1d2a;
+      color: #e8f3ff;
+    }
+    body { margin: 0; padding: 0; }
+    header {
+      padding: 16px 24px;
+      background: linear-gradient(120deg, #10314f, #0b1d2a);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    h1 { margin: 0; font-size: 24px; }
+    main { padding: 20px 24px 40px; max-width: 1200px; margin: 0 auto; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    }
+    .card h3 { margin-top: 0; }
+    .tasks { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+    label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    button {
+      background: #1ea7fd;
+      color: #061827;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    pre {
+      background: #061827;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 12px;
+      overflow: auto;
+      max-height: 320px;
+    }
+    footer { text-align: center; color: #9bb6c8; margin-top: 32px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Enterprise Platform Demo UI</h1>
+    <p style="margin:6px 0 0;color:#a8c6da">Select tasks from each module and execute concurrently.</p>
+  </header>
+  <main>
+    <div class="grid" id="cards"></div>
+    <div style="margin-top:24px; display:flex; gap:12px; align-items:center;">
+      <button id="run">Run Selected Tasks</button>
+      <span id="status" style="color:#9bb6c8"></span>
+    </div>
+    <h3>Execution Results</h3>
+    <pre id="output">No runs yet</pre>
+  </main>
+  <footer>Lightweight stdlib server + thread pool demo</footer>
+<script>
+const modules = [
+  { name: 'IAM & Security', tasks: [
+    ['iam:create_user', 'Create User'],
+    ['iam:sync_ldap', 'Sync LDAP'],
+    ['security:waf', 'WAF Filter']
+  ]},
+  { name: 'Integration', tasks: [
+    ['integration:kafka', 'Kafka enqueue']
+  ]},
+  { name: 'Office Suite', tasks: [
+    ['document:edit', 'Document edit'],
+    ['communication:chat', 'Chat message'],
+    ['calendar:remind', 'Calendar remind']
+  ]},
+  { name: 'OA / Workflow', tasks: [
+    ['oa:approval', 'Generic approval']
+  ]},
+  { name: 'HR & Payroll', tasks: [
+    ['hrm:payroll', 'Payroll run']
+  ]},
+  { name: 'Finance', tasks: [
+    ['finance:expense', 'Expense claim']
+  ]},
+  { name: 'Supply Chain', tasks: [
+    ['supply:po', 'Purchase order']
+  ]},
+  { name: 'Project Mgmt', tasks: [
+    ['project:gantt', 'Gantt data']
+  ]},
+  { name: 'CRM & Tickets', tasks: [
+    ['crm:pipeline', 'Pipeline'],
+    ['ticket:create', 'Create ticket']
+  ]},
+  { name: 'Knowledge & Learning', tasks: [
+    ['knowledge:search', 'Knowledge search'],
+    ['learning:exam', 'Exam scheduling']
+  ]},
+  { name: 'Mobile / Portal', tasks: [
+    ['mobile:approve', 'Mobile approval'],
+    ['portal:todo', 'Portal todos']
+  ]},
+  { name: 'ITSM / BI', tasks: [
+    ['itsm:monitor', 'Monitor'],
+    ['bi:dashboard', 'BI dashboard']
+  ]},
+  { name: 'Developer & Assets', tasks: [
+    ['developer:form', 'Form designer'],
+    ['asset:audit', 'Asset audit']
+  ]},
+];
+
+function buildCards() {
+  const container = document.getElementById('cards');
+  modules.forEach((mod, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<h3>${mod.name}</h3>`;
+    const wrap = document.createElement('div');
+    wrap.className = 'tasks';
+    mod.tasks.forEach(([value, label], i) => {
+      const id = `task-${idx}-${i}`;
+      const item = document.createElement('label');
+      item.innerHTML = `<input type="checkbox" value="${value}" id="${id}" /> ${label}`;
+      wrap.appendChild(item);
+    });
+    card.appendChild(wrap);
+    container.appendChild(card);
+  });
+}
+
+async function runTasks() {
+  const statusEl = document.getElementById('status');
+  const btn = document.getElementById('run');
+  const output = document.getElementById('output');
+  const selected = Array.from(document.querySelectorAll('input[type=checkbox]:checked')).map(c => c.value);
+  if (!selected.length) {
+    statusEl.textContent = 'Pick at least one task.';
+    return;
+  }
+  btn.disabled = true;
+  statusEl.textContent = 'Running...';
+  try {
+    const res = await fetch('/api/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tasks: selected })
+    });
+    const data = await res.json();
+    output.textContent = JSON.stringify(data, null, 2);
+    statusEl.textContent = 'Done';
+  } catch (err) {
+    output.textContent = err.toString();
+    statusEl.textContent = 'Failed';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('run').addEventListener('click', runTasks);
+buildCards();
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>门户与移动</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow" data-i18n="subtitle">统一门户 · 业务中心</p>
+      <h2 id="module-title" style="margin:6px 0 0">门户与移动</h2>
+      <p id="module-desc" style="margin:4px 0 0;color:#5b6b81">移动门户、待办中心与审批</p>
+    </div>
+    <div id="nav"></div>
+  </header>
+  <main>
+    <div id="body">
+      <p id="user-info" class="muted"></p>
+      <section class="card">
+        <div class="card-title">
+          <div>
+            <h3 data-i18n="quick_tasks">快捷任务</h3>
+            <p class="muted">移动审批、门户待办快速演示</p>
+          </div>
+        </div>
+        <div id="tasks" class="form-grid"></div>
+        <button class="primary" id="run" data-i18n="run_selected">执行勾选任务</button>
+        <span id="status" class="muted"></span>
+        <pre id="output" data-i18n="awaiting">等待执行...</pre>
+      </section>
+    </div>
+  </main>
+  <script src="/static/app.js"></script>
+  <script>
+    AppUI.applyI18n();
+    AppUI.setModuleCopy('mobile');
+    AppUI.bootstrapModulePage('mobile');
+  </script>
+</body>
+</html>
